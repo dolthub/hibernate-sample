@@ -39,9 +39,11 @@ CREATE TABLE `damage` (
 
 Create a couple 'species' and their damage:
 
+```
 > insert into species (color,tick_health_impact) values ("#00FF00",0.01);
 > insert into species (color,tick_health_impact) values ("#0000FF",0.008);
 > insert into species (color,tick_health_impact) values ("#FF0000",0.012);
+```
 
 (you are going to need to look at the species to get the UUIDs)
 
