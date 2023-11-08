@@ -66,7 +66,7 @@ public class GameState {
                     Map<Species, Integer> neighborCount = new HashMap<>();
                     for (Organism org : neighbors) {
                         int currentVal = neighborCount.getOrDefault(org.getSpecies(), 0);
-                        neighborCount.put(org.getSpecies(), currentVal);
+                        neighborCount.put(org.getSpecies(), currentVal + 1);
                     }
 
                     // find the max count
