@@ -57,21 +57,10 @@ public class Species {
        }
 
        public double getDamage(Species other) {
-           /*
-
-            for (Damage dmg : this.damageMap) {
-                if (other.getId().equals(dmg.getVictim())) {
-                    return dmg.getDamage();
-                }
-            }
-            return 0.0;
-*/
-
            Damage dmg = this.damageMap.get(other.getId());
            if (dmg == null) {
                 return 0.0;
            }
            return dmg.getDamage();
-
        }
 }
