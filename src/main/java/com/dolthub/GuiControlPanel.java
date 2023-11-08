@@ -13,9 +13,9 @@ public class GuiControlPanel extends JPanel {
 
     JButton runButton;
 
-    Persister persister;
+    DatabaseInterface persister;
 
-    public GuiControlPanel(List<Species> speciesList, Persister persister){
+    public GuiControlPanel(List<Species> speciesList, DatabaseInterface persister){
         this.persister = persister;
 
         this.setPreferredSize(new Dimension(500,100));

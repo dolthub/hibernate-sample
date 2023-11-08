@@ -2,7 +2,6 @@ package com.dolthub;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 public class GuiSpeciesConfig extends JPanel {
@@ -11,7 +10,7 @@ public class GuiSpeciesConfig extends JPanel {
 
     private Species selected;
 
-    private Persister persister;
+    private DatabaseInterface persister;
 
     class LeftSelector extends JPanel {
         LeftSelector() {
@@ -20,6 +19,7 @@ public class GuiSpeciesConfig extends JPanel {
             setPreferredSize(new Dimension(100,80));
 
             JComboBox<Species> selector = new JComboBox<Species>(species.toArray(new Species[0]));
+            selector.setPreferredSize(new Dimension(100,20));
             selector.setRenderer(new ColorCellRenderer());
             add(selector);
             selector.addActionListener(e -> {
@@ -32,7 +32,7 @@ public class GuiSpeciesConfig extends JPanel {
                 }
             });
 
-            add(Box.createHorizontalStrut(100));
+            add(Box.createHorizontalStrut(75));
 
             add(new JLabel("Color"));
             JTextField colorText = new JTextField(7);
@@ -136,7 +136,7 @@ public class GuiSpeciesConfig extends JPanel {
 
 
 
-    public GuiSpeciesConfig(List<Species> speciesList, Persister persister) {
+    public GuiSpeciesConfig(List<Species> speciesList, DatabaseInterface persister) {
         this.persister = persister;
         this.species = speciesList;
         // TODO Handle empty list;

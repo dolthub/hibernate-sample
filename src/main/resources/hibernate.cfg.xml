@@ -28,5 +28,8 @@
       <mapping class="com.dolthub.Species" />
       <mapping class="com.dolthub.Damage" />
       <mapping class="com.dolthub.DaoSeed" />
+      <mapping class="com.dolthub.Branch" />
+      <mapping class="com.dolthub.CheckoutResult" />
+
    </session-factory>
 </hibernate-configuration>

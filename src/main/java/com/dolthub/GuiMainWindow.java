@@ -17,21 +17,34 @@ public class GuiMainWindow {
 
     private GameState gameState;
 
-    public GuiMainWindow(GameState gameState, Persister persister) {
+    final private DatabaseInterface db;
+
+    public GuiMainWindow(GameState gameState, DatabaseInterface db) {
+        this.db = db;
         this.gameState = gameState;
         this.timer = new Timer();
 
         this.mainFrame = new JFrame("Dolt Life");
         this.mainFrame.setLayout(new FlowLayout(FlowLayout.CENTER));
-        this.mainFrame.setSize(500,620);
+        this.mainFrame.setSize(500, 720);
         this.mainFrame.setResizable(false);
+
+        newGameState(gameState);
+    }
+
+     public void newGameState(GameState state) {
+        if (this.dish != null) {
+            mainFrame.getContentPane().removeAll();
+        }
+
+        this.gameState = state;
 
         this.dish = new GuiPetriDish();
         this.dish.renderWith(gameState);
         this.dish.repaint();
         this.mainFrame.add(dish);
 
-        GuiControlPanel ctl = new GuiControlPanel(gameState.getSpecies(), persister);
+        GuiControlPanel ctl = new GuiControlPanel(gameState.getSpecies(), db);
         ctl.setActionListener((ActionEvent ae) -> {
             if (ae.getActionCommand().equals("Tick")) {
                 this.renderTicks(1);
@@ -47,10 +60,13 @@ public class GuiMainWindow {
                 timer = new Timer();
             }
         });
-
         mainFrame.add(ctl);
+
+        mainFrame.add(new GuiDoltOperations(db));
+
         mainFrame.setVisible(true);
         mainFrame.repaint();
+        mainFrame.revalidate();
     }
 
     private void renderTicks(int tickCount) {
