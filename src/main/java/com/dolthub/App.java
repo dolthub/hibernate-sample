@@ -18,10 +18,20 @@ public class App implements Persister {
 
     private App() {
         this.session = HibernateUtil.getSessionFactory().openSession();
-        Query<Species> q = session.createQuery("FROM Species", Species.class);
-        List<Species> speciesList = q.list();
+        Query<Species> q1 = session.createQuery("FROM Species", Species.class);
+        List<Species> speciesList = q1.list();
 
-        GameState gameState = new GameState(11877, speciesList);
+        Query<DaoSeed> q2 = session.createQuery("FROM DaoSeed", DaoSeed.class);
+        List<DaoSeed> seedList = q2.list();
+        int seed = new Random().nextInt();
+        if (seedList.size() != 1) {
+            // handle this.
+            System.out.println("no seed in db, or more than 1");
+        } else {
+            seed = seedList.get(0).getSeed();
+        }
+
+        GameState gameState = new GameState(seed, speciesList);
         GuiMainWindow window = new GuiMainWindow(gameState, this);
     }
 

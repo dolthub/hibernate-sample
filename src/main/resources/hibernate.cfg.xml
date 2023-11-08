@@ -27,6 +27,6 @@
 
       <mapping class="com.dolthub.Species" />
       <mapping class="com.dolthub.Damage" />
-
+      <mapping class="com.dolthub.DaoSeed" />
    </session-factory>
 </hibernate-configuration>
