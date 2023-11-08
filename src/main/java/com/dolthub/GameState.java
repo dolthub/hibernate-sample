@@ -40,14 +40,6 @@ public class GameState {
                 }
             }
         }
-
-/*
-        for(int x = 10; x < HEIGHT -10; x++) {
-            board.put(new Point(x-3, 5), new Organism(species.get(0)));
-            board.put(new Point(x, 15), new Organism(species.get(1)));
-            board.put(new Point(5, x), new Organism(species.get(2)));
-        }
-*/
     }
 
     public void tick() {
@@ -70,7 +62,7 @@ public class GameState {
                     if (newOrg.getStrength() > 0.0) {
                         newBoard.put(location, newOrg);
                     }
-                } else if (neighbors.size() == 3 ) {
+                } else if (neighbors.size() >= 3 && neighbors.size() <= 5) {
                     Map<Species, Integer> neighborCount = new HashMap<>();
                     for (Organism org : neighbors) {
                         int currentVal = neighborCount.getOrDefault(org.getSpecies(), 0);

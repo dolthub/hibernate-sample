@@ -25,7 +25,7 @@ public class App implements Persister {
         List<DaoSeed> seedList = q2.list();
         int seed = new Random().nextInt();
         if (seedList.size() != 1) {
-            // handle this.
+            // TODO handle this.
             System.out.println("no seed in db, or more than 1");
         } else {
             seed = seedList.get(0).getSeed();
@@ -46,6 +46,8 @@ public class App implements Persister {
         session.beginTransaction();
         session.persist(species);
         session.getTransaction().commit();
+
+        // TODO - Dolt Commit.
 
         System.out.println("We got a persister call: " + species);
     }

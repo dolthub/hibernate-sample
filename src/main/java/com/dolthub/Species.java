@@ -63,4 +63,15 @@ public class Species {
            }
            return dmg.getDamage();
        }
+       public void setDamage(Species other, double damage) {
+           Damage dmg = this.damageMap.get(other.getId());
+           if (dmg == null) {
+               dmg = new Damage();
+               dmg.setAttacker(this.getId());
+               dmg.setVictim(other.getId());
+
+               this.damageMap.put(other.getId(), dmg);
+           }
+           dmg.setDamage(damage);
+       }
 }

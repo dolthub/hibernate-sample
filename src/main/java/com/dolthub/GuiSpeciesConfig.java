@@ -15,13 +15,13 @@ public class GuiSpeciesConfig extends JPanel {
 
     class LeftSelector extends JPanel {
         LeftSelector() {
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setLayout(new FlowLayout(FlowLayout.LEFT));
+            // setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setPreferredSize(new Dimension(100,80));
 
             JComboBox<Species> selector = new JComboBox<Species>(species.toArray(new Species[0]));
             selector.setRenderer(new ColorCellRenderer());
             add(selector);
-
             selector.addActionListener(e -> {
                 int selectIdx = selector.getSelectedIndex();
 
@@ -32,11 +32,15 @@ public class GuiSpeciesConfig extends JPanel {
                 }
             });
 
+            add(Box.createHorizontalStrut(100));
+
+            add(new JLabel("Color"));
             JTextField colorText = new JTextField(7);
             colorText.setText(selected.getColorText());
             add(colorText);
 
-            JTextField decayText = new JTextField(7);
+            add(new JLabel("Aging Factor"));
+            JTextField decayText = new JTextField(4);
             decayText.setText("" + selected.getTickHealthImpact());
             add(decayText);
 
@@ -94,17 +98,43 @@ public class GuiSpeciesConfig extends JPanel {
             add(header);
             add(Box.createHorizontalStrut(100));
 
+            add(new DamageGrid());
+
+        }
+    }
+
+    class SingleDamage extends JPanel {
+        SingleDamage(Species victim) {
+            setLayout(new FlowLayout(FlowLayout.LEFT));
+            GuiCell cell = new GuiCell();
+            cell.setState(true, victim.getColor(), 1.0);
+            add(cell);
+            JTextField dmg = new JTextField("" + selected.getDamage(victim));
+            add(dmg);
+            // add(Box.createHorizontalStrut(100));
+
+            dmg.addActionListener(e -> {
+                // TODO - handle bad input
+                double newDmg = Double.parseDouble(dmg.getText());
+                selected.setDamage(victim, newDmg);
+                persister.speciesUpdated(selected);
+            });
+        }
+    }
+
+    class DamageGrid extends JPanel {
+
+        DamageGrid() {
+            setLayout(new GridLayout(2,3));
             for (Species s : species) {
                 if (s != selected) {
-                    GuiCell cell = new GuiCell();
-                    cell.setState(true, s.getColor(), 1.0);
-                    add(cell);
-                    add(new JLabel("" + selected.getDamage(s)));
-                    add(Box.createHorizontalStrut(100));
+                    add(new SingleDamage(s));
                 }
             }
         }
     }
+
+
 
     public GuiSpeciesConfig(List<Species> speciesList, Persister persister) {
         this.persister = persister;
