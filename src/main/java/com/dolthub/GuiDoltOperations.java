@@ -12,16 +12,12 @@ public class GuiDoltOperations extends JPanel {
     GuiDoltOperations(DatabaseInterface db) {
         this.db = db;
 
-        this.setLayout(new FlowLayout());
+        this.setLayout(new GridLayout(2,1));
 
         this.add(new BranchChooser());
 
-        /*
-        boolean dirty = db.dirtyWorkspace();
-        JLabel dirtyLabel = new JLabel("Dirty: "+dirty);
-        this.add(dirtyLabel);
+        this.add(new Commiter());
 
-         */
     }
 
 
@@ -52,5 +48,33 @@ public class GuiDoltOperations extends JPanel {
         }
 
     }
+
+    class Commiter extends JPanel {
+        Commiter() {
+            setLayout(new FlowLayout());
+
+            String currentBranch = db.activeBranch();
+
+            if (db.dirtyWorkspace()) {
+                JLabel msg = new JLabel("Current branch has uncommited changes.");
+                add(msg);
+                JButton commit = new JButton("Commit!");
+
+                commit.addActionListener(e -> {
+                    db.commit("asdfasdf");
+
+                    removeAll();
+                    revalidate();
+                });
+
+                add(commit);
+
+            } else {
+                JLabel msg = new JLabel(currentBranch + " has no uncommitted changes.");
+                add(msg);
+            }
+        }
+    }
+
 
 }

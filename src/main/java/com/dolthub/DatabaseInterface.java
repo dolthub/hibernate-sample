@@ -6,7 +6,7 @@ public interface DatabaseInterface {
 
     abstract public void speciesUpdated(Species species);
 
-    abstract public void reset(String commitId);
+    abstract public void commit(String message);
 
     abstract public void checkout(String branch);
 

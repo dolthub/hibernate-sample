@@ -51,11 +51,6 @@ public class App implements DatabaseInterface {
     }
 
     @Override
-    public void reset(String commit) {
-        System.out.println("Unimplemented: reset to " + commit);
-    }
-
-    @Override
     public void checkout(String branch) {
         // Checkout requires a full restart of the game, effectively.
 
@@ -91,5 +86,11 @@ public class App implements DatabaseInterface {
         return q.getSingleResult();
     }
 
+    @Override
+    public void commit(String message) {
+        Query<String> q = session.createNativeQuery("call dolt_commit('-A','-m','test test test')", String.class);
+        String hash = q.getSingleResult();
 
+        System.out.println(hash);
+    }
 }
