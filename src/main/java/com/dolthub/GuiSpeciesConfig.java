@@ -41,21 +41,18 @@ public class GuiSpeciesConfig extends JPanel {
 
             decayText.addActionListener(e -> {
                 String newText = decayText.getText();
-                System.out.println(newText);
-
-                double newVal = selected.getTickHealthImpact();
-
-                try {
-                    newVal = Double.parseDouble(newText);
-                } catch (Exception ee) {
-                    // Ignore.
-                }
-
+                double newVal = safeDoubleParse(newText, selected.getTickHealthImpact());
                 if (newVal != selected.getTickHealthImpact()) {
                     selected.setTickHealthImpact(newVal);
                     persister.speciesUpdated(selected);
+
+                    System.out.println("UPDATE DIRTY BIT");
                 }
             });
+
+//            decayText.addFocusListener();
+
+
         }
 
         class ColorCellRenderer extends JLabel implements ListCellRenderer<Species> {
@@ -110,9 +107,14 @@ public class GuiSpeciesConfig extends JPanel {
 
             dmg.addActionListener(e -> {
                 // TODO - handle bad input
-                double newDmg = Double.parseDouble(dmg.getText());
-                selected.setDamage(victim, newDmg);
-                persister.speciesUpdated(selected);
+                double newDmg = safeDoubleParse(dmg.getText(), selected.getDamage(victim));
+
+                if (newDmg != selected.getDamage(victim)) {
+                    selected.setDamage(victim, newDmg);
+                    persister.speciesUpdated(selected);
+
+                    System.out.println("NEED TO UPDATE THE DIRTY BIT");
+                }
             });
         }
     }
@@ -128,8 +130,6 @@ public class GuiSpeciesConfig extends JPanel {
             }
         }
     }
-
-
 
     public GuiSpeciesConfig(List<Species> speciesList, DatabaseInterface persister) {
         this.persister = persister;
@@ -150,5 +150,14 @@ public class GuiSpeciesConfig extends JPanel {
 
         this.repaint();
         this.revalidate();
+    }
+
+    private double safeDoubleParse(String input, double defaultVal) {
+        try {
+            defaultVal = Double.parseDouble(input);
+        } catch (Exception e) {
+            // ignore;
+        }
+        return defaultVal;
     }
 }
