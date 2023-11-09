@@ -41,7 +41,6 @@ public class GuiMainWindow {
 
         this.dish = new GuiPetriDish();
         this.dish.renderWith(gameState);
-        this.dish.repaint();
         this.mainFrame.add(dish);
 
         GuiControlPanel ctl = new GuiControlPanel(gameState.getSpecies(), db);

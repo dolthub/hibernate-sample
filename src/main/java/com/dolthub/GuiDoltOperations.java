@@ -11,15 +11,11 @@ public class GuiDoltOperations extends JPanel {
 
     GuiDoltOperations(DatabaseInterface db) {
         this.db = db;
-
         this.setLayout(new GridLayout(2,1));
 
         this.add(new BranchChooser());
-
         this.add(new Commiter());
-
     }
-
 
     class BranchChooser extends JPanel {
         BranchChooser() {
@@ -37,7 +33,6 @@ public class GuiDoltOperations extends JPanel {
             add(branchSelect);
         }
 
-
         private String[] branchNames() {
             List<Branch> allBranches = db.branches();
             List<String> tmp = new ArrayList<>(allBranches.size());
@@ -46,7 +41,6 @@ public class GuiDoltOperations extends JPanel {
             }
             return tmp.toArray(new String[0]);
         }
-
     }
 
     class Commiter extends JPanel {
@@ -75,6 +69,4 @@ public class GuiDoltOperations extends JPanel {
             }
         }
     }
-
-
 }

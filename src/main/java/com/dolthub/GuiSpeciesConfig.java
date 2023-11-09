@@ -34,11 +34,6 @@ public class GuiSpeciesConfig extends JPanel {
 
             add(Box.createHorizontalStrut(75));
 
-            add(new JLabel("Color"));
-            JTextField colorText = new JTextField(7);
-            colorText.setText(selected.getColorText());
-            add(colorText);
-
             add(new JLabel("Aging Factor"));
             JTextField decayText = new JTextField(4);
             decayText.setText("" + selected.getTickHealthImpact());
