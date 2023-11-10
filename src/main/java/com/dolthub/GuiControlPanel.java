@@ -15,7 +15,7 @@ public class GuiControlPanel extends JPanel {
 
     DatabaseInterface db;
 
-    public GuiControlPanel(List<Species> speciesList, DatabaseInterface db){
+    public GuiControlPanel(List<DaoSpecies> speciesList, DatabaseInterface db){
         this.db = db;
 
         this.setPreferredSize(new Dimension(500,100));

@@ -5,19 +5,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
-import org.hibernate.StatelessSession;
-import org.hibernate.annotations.Parameter;
 import org.hibernate.query.Query;
 
-public class App implements DatabaseInterface {
+public class PetriDishMain implements DatabaseInterface {
 
     private Session currentBranchSession;
     private final Map<String, Session> branchSessions = new HashMap<>();
     private final GuiMainWindow window;
 
-    private App() {
+    private PetriDishMain() {
         this.currentBranchSession = HibernateUtil.getSessionForDefaultBranch();
         String activeBranch = activeBranch();
         branchSessions.put(activeBranch, this.currentBranchSession);
@@ -26,15 +23,15 @@ public class App implements DatabaseInterface {
     }
 
     public static void main( String[] args ) {
-        new App();
+        new PetriDishMain();
     }
 
     private GameState fullDataReload() {
-        Query<PetriDishCell> q = currentBranchSession.createQuery("FROM PetriDishCell", PetriDishCell.class);
-        List<PetriDishCell> petridish = q.list();
+        Query<DaoPetriDishCell> q = currentBranchSession.createQuery("FROM DaoPetriDishCell", DaoPetriDishCell.class);
+        List<DaoPetriDishCell> petridish = q.list();
 
-        Query<Species> q1 = currentBranchSession.createQuery("FROM Species", Species.class);
-        List<Species> speciesList = q1.list();
+        Query<DaoSpecies> q1 = currentBranchSession.createQuery("FROM DaoSpecies", DaoSpecies.class);
+        List<DaoSpecies> speciesList = q1.list();
 
         Query<DaoSeed> q2 = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
         List<DaoSeed> seedList = q2.list();
@@ -48,7 +45,7 @@ public class App implements DatabaseInterface {
     }
 
     @Override
-    public void speciesUpdated(Species species) {
+    public void speciesUpdated(DaoSpecies species) {
         currentBranchSession.beginTransaction();
         currentBranchSession.persist(species);
         currentBranchSession.getTransaction().commit();
@@ -73,8 +70,8 @@ public class App implements DatabaseInterface {
     }
 
     @Override
-    public List<Branch> branches() {
-        Query<Branch> q = currentBranchSession.createNativeQuery("select name,hash from dolt_branches", Branch.class);
+    public List<DaoBranch> branches() {
+        Query<DaoBranch> q = currentBranchSession.createNativeQuery("select name,hash from dolt_branches", DaoBranch.class);
         return q.list();
     }
 
@@ -92,12 +89,12 @@ public class App implements DatabaseInterface {
     }
 
     @Override
-    public Map<PetriDishPrimaryKey, PetriDishCell> updateBoard(Map<PetriDishPrimaryKey, PetriDishCell> sessionStateObjects, Map<PetriDishPrimaryKey, PetriDishCell> detachedObjects) {
-        Map<PetriDishPrimaryKey, PetriDishCell> result = new HashMap<>();
+    public Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> updateBoard(Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> sessionStateObjects, Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> detachedObjects) {
+        Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> result = new HashMap<>();
 
         currentBranchSession.beginTransaction();
         // Any cells which are in the before, but not after are deletes.
-        for (PetriDishPrimaryKey key : sessionStateObjects.keySet()){
+        for (DaoPetriDishPrimaryKey key : sessionStateObjects.keySet()){
             if (!detachedObjects.containsKey(key)){
                 currentBranchSession.remove(sessionStateObjects.get(key));
             }
@@ -105,9 +102,9 @@ public class App implements DatabaseInterface {
 
         // For any cells which are in both, we copy values into the session objects and persist them
         // For any new cell, we persist directly.
-        for (Map.Entry<PetriDishPrimaryKey, PetriDishCell> entry : detachedObjects.entrySet()) {
+        for (Map.Entry<DaoPetriDishPrimaryKey, DaoPetriDishCell> entry : detachedObjects.entrySet()) {
             if(sessionStateObjects.containsKey(entry.getKey())){
-                PetriDishCell sessionObj = sessionStateObjects.get(entry.getKey());
+                DaoPetriDishCell sessionObj = sessionStateObjects.get(entry.getKey());
                 sessionObj.setSpecies(entry.getValue().getSpecies());
                 sessionObj.setStrength(entry.getValue().getStrength());
 

@@ -2,42 +2,40 @@ package com.dolthub;
 
 import jakarta.persistence.*;
 
-import java.awt.*;
-
 @Entity
 @Table(name = "petridish")
-public class PetriDishCell {
+public class DaoPetriDishCell {
 
     @EmbeddedId
-    private PetriDishPrimaryKey id;
+    private DaoPetriDishPrimaryKey id;
 
     @ManyToOne
     @JoinColumn(name = "species_id")
-    private Species species;
+    private DaoSpecies species;
 
     @Column(name = "strength")
     private double strength;
 
-    public PetriDishCell() { }
+    public DaoPetriDishCell() { }
 
-    public PetriDishCell(PetriDishCell cell) {
+    public DaoPetriDishCell(DaoPetriDishCell cell) {
         this.id = cell.getId();
         this.species = cell.getSpecies();
         this.strength = cell.getStrength();
     }
 
 
-    public PetriDishCell(PetriDishPrimaryKey id, Species species, double strength) {
+    public DaoPetriDishCell(DaoPetriDishPrimaryKey id, DaoSpecies species, double strength) {
         this.id = id;
         this.species = species;
         this.strength = strength;
     }
 
-    public PetriDishPrimaryKey getId() {
+    public DaoPetriDishPrimaryKey getId() {
         return id;
     }
 
-    public Species getSpecies() {
+    public DaoSpecies getSpecies() {
         return species;
     }
 
@@ -45,11 +43,11 @@ public class PetriDishCell {
         return strength;
     }
 
-    public void setId(PetriDishPrimaryKey id) {
+    public void setId(DaoPetriDishPrimaryKey id) {
         this.id = id;
     }
 
-    public void setSpecies(Species species) {
+    public void setSpecies(DaoSpecies species) {
         this.species = species;
     }
 

@@ -25,12 +25,11 @@
          r00tr00t
       </property>
 
-      <mapping class="com.dolthub.Species" />
-      <mapping class="com.dolthub.Damage" />
+      <mapping class="com.dolthub.DaoSpecies" />
+      <mapping class="com.dolthub.DaoDamage" />
       <mapping class="com.dolthub.DaoSeed" />
-      <mapping class="com.dolthub.Branch" />
-      <mapping class="com.dolthub.CheckoutResult" />
-      <mapping class="com.dolthub.PetriDishCell" />
+      <mapping class="com.dolthub.DaoBranch" />
+      <mapping class="com.dolthub.DaoPetriDishCell" />
 
    </session-factory>
 </hibernate-configuration>

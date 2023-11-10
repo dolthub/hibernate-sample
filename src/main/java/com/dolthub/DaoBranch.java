@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 @Entity
-public class Branch {
+public class DaoBranch {
     @Id
     @Column(name = "name")
     private String name;

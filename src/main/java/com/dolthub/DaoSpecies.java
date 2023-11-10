@@ -3,13 +3,11 @@ package com.dolthub;
 import jakarta.persistence.*;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Entity
 @Table(name = "Species")
-public class Species {
+public class DaoSpecies {
        @Id
        @Column(name = "id")
        @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,9 +22,9 @@ public class Species {
        @OneToMany(cascade = CascadeType.ALL)
        @JoinColumn(name = "attacker")
        @MapKey(name = "victim")
-       private Map<String,Damage> damageMap;
+       private Map<String, DaoDamage> damageMap;
 
-       public Species() {}
+       public DaoSpecies() {}
        
        public String getId() {
           return id;
@@ -57,17 +55,17 @@ public class Species {
            return "{id "+ this.id+ ", color " + this.hexColor + ", tickHealthImpact " + this.tickHealthImpact + "}";
        }
 
-       public double getDamage(Species other) {
-           Damage dmg = this.damageMap.get(other.getId());
+       public double getDamage(DaoSpecies other) {
+           DaoDamage dmg = this.damageMap.get(other.getId());
            if (dmg == null) {
                 return 0.0;
            }
            return dmg.getDamage();
        }
-       public void setDamage(Species other, double damage) {
-           Damage dmg = this.damageMap.get(other.getId());
+       public void setDamage(DaoSpecies other, double damage) {
+           DaoDamage dmg = this.damageMap.get(other.getId());
            if (dmg == null) {
-               dmg = new Damage();
+               dmg = new DaoDamage();
                dmg.setAttacker(this.getId());
                dmg.setVictim(other.getId());
 

@@ -5,19 +5,19 @@ import java.util.Map;
 
 public interface DatabaseInterface {
 
-    abstract public void speciesUpdated(Species species);
+    abstract public void speciesUpdated(DaoSpecies species);
 
     abstract public void commit(String author, String message);
 
     abstract public void checkout(String branch);
 
-    abstract public List<Branch> branches();
+    abstract public List<DaoBranch> branches();
 
     abstract public String activeBranch();
 
     abstract public boolean dirtyWorkspace();
 
-    abstract public Map<PetriDishPrimaryKey, PetriDishCell> updateBoard(Map<PetriDishPrimaryKey, PetriDishCell> before, Map<PetriDishPrimaryKey, PetriDishCell> after);
+    abstract public Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> updateBoard(Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> before, Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> after);
 
     abstract public void persistSeed(long seed);
 

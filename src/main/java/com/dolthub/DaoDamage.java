@@ -2,15 +2,13 @@ package com.dolthub;
 
 import jakarta.persistence.*;
 
-import java.awt.*;
-
 /* Data Access Object for the damage table. The Damage table is for tracking one number, which is how much
  * damage is dealt from one species to another. Application doesn't use Damage class directly, as it's obtained
  * as a OneToMany lookup in the Species class.
  */
 @Entity
 @Table(name = "damage")
-public class Damage {
+public class DaoDamage {
        @Id
        @Column(name = "id")
        @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,7 +23,7 @@ public class Damage {
        @Column(name = "damage")
        private double damage;
 
-       public Damage() {}
+       public DaoDamage() {}
        
        public String getId() {
           return id;

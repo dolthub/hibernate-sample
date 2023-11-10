@@ -8,9 +8,9 @@ import java.util.List;
 
 public class GuiSpeciesConfig extends JPanel {
 
-    private final List<Species> species;
+    private final List<DaoSpecies> species;
 
-    private Species selected;
+    private DaoSpecies selected;
 
     private DatabaseInterface persister;
 
@@ -22,14 +22,14 @@ public class GuiSpeciesConfig extends JPanel {
             // setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setPreferredSize(new Dimension(100,80));
 
-            JComboBox<Species> selector = new JComboBox<Species>(species.toArray(new Species[0]));
+            JComboBox<DaoSpecies> selector = new JComboBox<DaoSpecies>(species.toArray(new DaoSpecies[0]));
             selector.setPreferredSize(new Dimension(100,20));
             selector.setRenderer(new ColorCellRenderer());
             add(selector);
             selector.addActionListener(e -> {
                 int selectIdx = selector.getSelectedIndex();
 
-                Species newSelected = species.get(selectIdx);
+                DaoSpecies newSelected = species.get(selectIdx);
                 if (newSelected != selected) {
                     selected = newSelected;
                     GuiSpeciesConfig.this.update();
@@ -67,13 +67,13 @@ public class GuiSpeciesConfig extends JPanel {
         }
 
 
-        class ColorCellRenderer extends JLabel implements ListCellRenderer<Species> {
+        class ColorCellRenderer extends JLabel implements ListCellRenderer<DaoSpecies> {
             @Override
             public void setBackground(Color bg) {
                 return; // no op.
             }
             @Override
-            public Component getListCellRendererComponent(JList<? extends Species> list, Species value, int index,
+            public Component getListCellRendererComponent(JList<? extends DaoSpecies> list, DaoSpecies value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
                 if (index == -1) {
                     value = selected;
@@ -108,11 +108,11 @@ public class GuiSpeciesConfig extends JPanel {
     }
 
     class SingleDamage extends JPanel {
-        Species victim;
+        DaoSpecies victim;
 
         JTextField dmg;
 
-        SingleDamage(Species victim) {
+        SingleDamage(DaoSpecies victim) {
             this.victim = victim;
             setLayout(new FlowLayout(FlowLayout.LEFT));
             GuiCell cell = new GuiCell();
@@ -152,7 +152,7 @@ public class GuiSpeciesConfig extends JPanel {
 
         DamageGrid() {
             setLayout(new GridLayout(2,3));
-            for (Species s : species) {
+            for (DaoSpecies s : species) {
                 if (s != selected) {
                     add(new SingleDamage(s));
                 }
@@ -160,7 +160,7 @@ public class GuiSpeciesConfig extends JPanel {
         }
     }
 
-    public GuiSpeciesConfig(List<Species> speciesList, DatabaseInterface persister) {
+    public GuiSpeciesConfig(List<DaoSpecies> speciesList, DatabaseInterface persister) {
         this.persister = persister;
         this.species = speciesList;
         // TODO Handle empty list;

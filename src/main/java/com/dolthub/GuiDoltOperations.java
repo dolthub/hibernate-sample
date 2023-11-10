@@ -46,9 +46,9 @@ public class GuiDoltOperations extends JPanel {
         }
 
         private String[] branchNames() {
-            List<Branch> allBranches = db.branches();
+            List<DaoBranch> allBranches = db.branches();
             List<String> tmp = new ArrayList<>(allBranches.size());
-            for( Branch b : allBranches) {
+            for( DaoBranch b : allBranches) {
                 tmp.add(b.getName());
             }
             return tmp.toArray(new String[0]);

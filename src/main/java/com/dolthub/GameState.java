@@ -21,19 +21,19 @@ public class GameState {
 
     // Hibernate session obejcts are stored here. When an update is required, we'll use them to persist. For performance
     // reasons we don't used them as the live objects.
-    private Map<PetriDishPrimaryKey, PetriDishCell> sessionObjects;
+    private Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> sessionObjects;
 
-    private Map<PetriDishPrimaryKey, PetriDishCell> liveBoard;
+    private Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> liveBoard;
 
     private long score = 0;
 
-    private List<Species> species;
+    private List<DaoSpecies> species;
 
     private final long seed;
 
     private final DatabaseInterface db;
 
-    public GameState(DatabaseInterface db, long seed, List<PetriDishCell> petridish, List<Species> species){
+    public GameState(DatabaseInterface db, long seed, List<DaoPetriDishCell> petridish, List<DaoSpecies> species){
         this.db = db;
         this.species = species;
         this.seed = seed;
@@ -42,24 +42,24 @@ public class GameState {
         this.sessionObjects = new LinkedHashMap<>();
 
 
-        for (PetriDishCell p : petridish) {
-            liveBoard.put(p.getId(), new PetriDishCell(p));
+        for (DaoPetriDishCell p : petridish) {
+            liveBoard.put(p.getId(), new DaoPetriDishCell(p));
             sessionObjects.put(p.getId(), p);
         }
     }
 
     public void tick() {
         Set<String> bioDiversity = new HashSet<>();
-        Map<PetriDishPrimaryKey, PetriDishCell> newBoard = new HashMap<>();
+        Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> newBoard = new HashMap<>();
         for(int x = 0; x < HEIGHT; x++) {
             for( int y = 0; y < WIDTH; y++) {
-                PetriDishPrimaryKey location = new PetriDishPrimaryKey(x,y);
+                DaoPetriDishPrimaryKey location = new DaoPetriDishPrimaryKey(x,y);
 
-                PetriDishCell cell = liveBoard.get(location);
-                Set<PetriDishCell> neighbors = getNeighbors(location);
+                DaoPetriDishCell cell = liveBoard.get(location);
+                Set<DaoPetriDishCell> neighbors = getNeighbors(location);
 
                 if (cell != null) {
-                    for (PetriDishCell org : neighbors) {
+                    for (DaoPetriDishCell org : neighbors) {
                         double damage = org.getSpecies().getDamage(cell.getSpecies());
                         cell.lowerStrength(damage);
                     }
@@ -73,7 +73,7 @@ public class GameState {
                     }
                 } else if (neighbors.size() >= 3 && neighbors.size() <= 5) {
                     Map<String, Integer> neighborCount = new HashMap<>();
-                    for (PetriDishCell cellAlt : neighbors) {
+                    for (DaoPetriDishCell cellAlt : neighbors) {
                         int currentVal = neighborCount.getOrDefault(cellAlt.getSpecies(), 0);
                         neighborCount.put(cellAlt.getSpecies().getId(), currentVal + 1);
                     }
@@ -101,16 +101,16 @@ public class GameState {
                     if (match != null) {
                         bioDiversity.add(match);
 
-                        Species found = null;
+                        DaoSpecies found = null;
                         // this is a little silly, but shortest path.
-                        for(Species s: species) {
+                        for(DaoSpecies s: species) {
                             if (s.getId().equals(match)) {
                                 found = s;
                                 break;
                             }
                         }
 
-                        PetriDishCell newCell = new PetriDishCell(location, found, 1.0);
+                        DaoPetriDishCell newCell = new DaoPetriDishCell(location, found, 1.0);
                         newBoard.put(location, newCell);
                     }
                 }
@@ -130,8 +130,8 @@ public class GameState {
             for (int y = 0; y < WIDTH; y++) {
                 if (rand.nextBoolean()) {
                     int r = rand.nextInt(species.size());
-                    PetriDishPrimaryKey key = new PetriDishPrimaryKey(x,y);
-                    PetriDishCell cell = new PetriDishCell(key, species.get(r), rand.nextDouble());
+                    DaoPetriDishPrimaryKey key = new DaoPetriDishPrimaryKey(x,y);
+                    DaoPetriDishCell cell = new DaoPetriDishCell(key, species.get(r), rand.nextDouble());
                     liveBoard.put(key, cell);
                 }
             }
@@ -144,9 +144,9 @@ public class GameState {
         sessionObjects = this.db.updateBoard(sessionObjects, liveBoard);
 
         liveBoard.clear();
-        for(PetriDishPrimaryKey key : sessionObjects.keySet()) {
-            PetriDishCell sessObj = sessionObjects.get(key);
-            liveBoard.put(key, new PetriDishCell(key, sessObj.getSpecies(), sessObj.getStrength()));
+        for(DaoPetriDishPrimaryKey key : sessionObjects.keySet()) {
+            DaoPetriDishCell sessObj = sessionObjects.get(key);
+            liveBoard.put(key, new DaoPetriDishCell(key, sessObj.getSpecies(), sessObj.getStrength()));
         }
     }
 
@@ -160,7 +160,7 @@ public class GameState {
     }
 
     // Null returned if it is not living.
-    public PetriDishCell getCell(PetriDishPrimaryKey key) {
+    public DaoPetriDishCell getCell(DaoPetriDishPrimaryKey key) {
         return liveBoard.get(key);
     }
 
@@ -168,14 +168,14 @@ public class GameState {
         return this.score;
     }
 
-    public List<Species> getSpecies() {
+    public List<DaoSpecies> getSpecies() {
         return species;
     }
 
-    private Set<PetriDishCell> getNeighbors(PetriDishPrimaryKey point) {
-        HashSet<PetriDishCell> answer = new HashSet<>();
+    private Set<DaoPetriDishCell> getNeighbors(DaoPetriDishPrimaryKey point) {
+        HashSet<DaoPetriDishCell> answer = new HashSet<>();
         for (Direction dir : Direction.values()) {
-            PetriDishCell cell = liveBoard.get(neighborPoint(point, dir));
+            DaoPetriDishCell cell = liveBoard.get(neighborPoint(point, dir));
             if (cell != null) {
                 answer.add(cell);
             }
@@ -183,21 +183,21 @@ public class GameState {
         return answer;
     }
 
-    public static PetriDishPrimaryKey neighborPoint(PetriDishPrimaryKey cell, Direction direction) {
+    public static DaoPetriDishPrimaryKey neighborPoint(DaoPetriDishPrimaryKey cell, Direction direction) {
         int newVal;
         switch (direction) {
             case NORTH:
                 newVal = (cell.getX() - 1) < 0 ? (GameState.HEIGHT - 1) : cell.getX() - 1;
-                return new PetriDishPrimaryKey(newVal, cell.getY());
+                return new DaoPetriDishPrimaryKey(newVal, cell.getY());
             case SOUTH:
                 newVal = (cell.getX() + 1) == GameState.HEIGHT ? 0 : cell.getX() + 1;
-                return new PetriDishPrimaryKey(newVal, cell.getY());
+                return new DaoPetriDishPrimaryKey(newVal, cell.getY());
             case WEST:
                 newVal = (cell.getY() + 1) == GameState.WIDTH ? 0 : cell.getY() + 1;
-                return new PetriDishPrimaryKey(cell.getX(), newVal);
+                return new DaoPetriDishPrimaryKey(cell.getX(), newVal);
             case EAST:
                 newVal = (cell.getY() - 1) < 0 ? GameState.WIDTH : cell.getY() - 1;
-                return new PetriDishPrimaryKey(cell.getX(), newVal);
+                return new DaoPetriDishPrimaryKey(cell.getX(), newVal);
             case NORTHWEST:
                 return neighborPoint(neighborPoint(cell, Direction.NORTH), Direction.WEST);
             case NORTHEAST:
