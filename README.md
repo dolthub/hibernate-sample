@@ -10,10 +10,11 @@ $ dolt clone dolthub/hibernate-sample
 $ cd hibernate-sample
 ```
 
-Create a branch:
+Create branches:
 
 ```sh
-$ dolt branch mybranch HEAD~1
+$ dolt branch br1 origin/br1
+$ dolt branch squares origin/squares
 ```
 
 Start a dolt sql-server:
