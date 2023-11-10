@@ -3,8 +3,6 @@ package com.dolthub;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,7 +14,7 @@ public class GuiMainWindow {
 
     private GuiPetriDish dish;
 
-    private GuiDoltAndScore frankenObj;
+    private GuiDoltReseed frankenObj;  // NM4??
 
     private GameState gameState;
 
@@ -67,7 +65,7 @@ public class GuiMainWindow {
         });
         mainFrame.add(ctl);
 
-        frankenObj = new GuiDoltAndScore(db);
+        frankenObj = new GuiDoltReseed(gameState, db);
 
         mainFrame.add(frankenObj);
 
@@ -82,10 +80,6 @@ public class GuiMainWindow {
         }
 
         dish.renderWith(gameState);
-        frankenObj.updateScore(gameState.getScore());
-
-        // Wrong place for this!!!!!! NM4
- //       gameState.persist();
 
         mainFrame.getContentPane().repaint();
     }

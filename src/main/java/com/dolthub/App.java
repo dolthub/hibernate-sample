@@ -38,13 +38,25 @@ public class App implements DatabaseInterface {
 
         Query<DaoSeed> q2 = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
         List<DaoSeed> seedList = q2.list();
-        int seed = new Random().nextInt();
+        long seed = new Random().nextLong();
         if (seedList.size() != 1) {
             System.out.println("no seed in db, or more than 1. Using a random number.");
         } else {
             seed = seedList.get(0).getSeed();
         }
         return new GameState(this, seed, petridish, speciesList);
+    }
+
+    private long lookupSeed() {
+        Query<DaoSeed> qry = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
+        List<DaoSeed> seedList = qry.list();
+        long seed = new Random().nextLong();
+        if (seedList.size() != 1) {
+            System.out.println("no seed in db, or more than 1. Using a random number.");
+        } else {
+            seed = seedList.get(0).getSeed();
+        }
+        return seed;
     }
 
     @Override
@@ -120,6 +132,30 @@ public class App implements DatabaseInterface {
 
         currentBranchSession.getTransaction().commit();
         return result;
+    }
+
+    @Override
+    public void persistSeed(long newSeed) {
+        Query<DaoSeed> qry = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
+        List<DaoSeed> seedList = qry.list();
+
+        if (seedList.size() > 1) {
+            System.out.println("Too many entries in the seed table.");
+            return;
+        }
+
+        // could be a no op.
+        if (seedList.size() == 1 && seedList.get(0).getSeed() == newSeed) {
+            return;
+        }
+
+        currentBranchSession.beginTransaction();
+        if (seedList.size() == 1) {
+            currentBranchSession.remove(seedList.get(0));
+        }
+        currentBranchSession.persist(new DaoSeed(newSeed));
+        currentBranchSession.getTransaction().commit();
+
     }
 
     @Override

@@ -27,77 +27,26 @@ public class GameState {
 
     private long score = 0;
 
-//    private final Map<String, Species> idSpeciesMap;
-
-
-//    private final Map<String, Map<String, Double>> detachedSpeciesDamages = new HashMap<>();
-
     private List<Species> species;
+
+    private final long seed;
 
     private final DatabaseInterface db;
 
     public GameState(DatabaseInterface db, long seed, List<PetriDishCell> petridish, List<Species> species){
-        /*  NM4
-        idSpeciesMap = new LinkedHashMap<>();
-        for(Species s : species) {
-            idSpeciesMap.put(s.getId(), s);
-
-            Map<String,Double> damages = new HashMap<>();
-            for (Species victim : species) {
-                damages.put(victim.getId(), s.getDamage(victim));
-            }
-            detachedSpeciesDamages.put(s.getId(), damages);
-        }
-
-         */
-
         this.db = db;
         this.species = species;
-
-        Random rand = new Random(seed);
+        this.seed = seed;
 
         this.liveBoard = new LinkedHashMap<>();
         this.sessionObjects = new LinkedHashMap<>();
 
-        /*
-        for (int x = 0; x < HEIGHT; x++) {
-            for (int y = 0; y < WIDTH; y++) {
-                if (rand.nextBoolean()) {
-                    int r = rand.nextInt(species.size());
-                    Organism org = new Organism(species.get(r), rand.nextDouble());
-                    board.put(new Point(x, y), org);
-                }
-            }
-        }
-         */
 
         for (PetriDishCell p : petridish) {
             liveBoard.put(p.getId(), new PetriDishCell(p));
             sessionObjects.put(p.getId(), p);
         }
     }
-
-    /* NM4
-    public class DetachedCellData {
-        String species;
-
-        double strength;
-
-        DetachedCellData(PetriDishCell cell) {
-            this.species = cell.getSpecies().getId();
-            this.strength = cell.getStrength();
-        }
-
-        DetachedCellData(String species, double strength) {
-            this.species = species;
-            this.strength = strength;
-        }
-
-        public void lowerStrength(double hits) {
-            this.strength -= Math.min(0.1, hits);
-        }
-    }
-     */
 
     public void tick() {
         Set<String> bioDiversity = new HashSet<>();
@@ -172,6 +121,25 @@ public class GameState {
         this.liveBoard = newBoard;
     }
 
+    public void randomize(long seed) {
+        liveBoard.clear();
+
+        Random rand = new Random(seed);
+
+        for (int x = 0; x < HEIGHT; x++) {
+            for (int y = 0; y < WIDTH; y++) {
+                if (rand.nextBoolean()) {
+                    int r = rand.nextInt(species.size());
+                    PetriDishPrimaryKey key = new PetriDishPrimaryKey(x,y);
+                    PetriDishCell cell = new PetriDishCell(key, species.get(r), rand.nextDouble());
+                    liveBoard.put(key, cell);
+                }
+            }
+        }
+        this.persist();
+    }
+
+
     public void persist() {
         sessionObjects = this.db.updateBoard(sessionObjects, liveBoard);
 
@@ -241,5 +209,9 @@ public class GameState {
             default:
         }
         return null;
+    }
+
+    public long getSeed() {
+        return seed;
     }
 }

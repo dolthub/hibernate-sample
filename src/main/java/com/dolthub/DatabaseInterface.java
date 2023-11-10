@@ -19,4 +19,6 @@ public interface DatabaseInterface {
 
     abstract public Map<PetriDishPrimaryKey, PetriDishCell> updateBoard(Map<PetriDishPrimaryKey, PetriDishCell> before, Map<PetriDishPrimaryKey, PetriDishCell> after);
 
+    abstract public void persistSeed(long seed);
+
 }

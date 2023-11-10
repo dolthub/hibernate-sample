@@ -50,7 +50,10 @@ public class GuiDoltOperations extends JPanel {
             String currentBranch = db.activeBranch();
 
             if (db.dirtyWorkspace()) {
-                JLabel msg = new JLabel("Current branch has uncommited changes.");
+                JLabel msg = new JLabel("Uncommited changes.");
+                Font f = msg.getFont();
+                msg.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+
                 add(msg);
                 JButton commit = new JButton("Commit!");
 

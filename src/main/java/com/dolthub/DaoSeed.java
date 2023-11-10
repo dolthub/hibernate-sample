@@ -11,13 +11,19 @@ public class DaoSeed {
 
     @Id
     @Column(name = "seed")
-    private int seed;
+    private long seed;
 
-    public int getSeed() {
+    public DaoSeed() { }
+
+    public DaoSeed(long seed) {
+        this.seed = seed;
+    }
+
+    public long getSeed() {
         return seed;
     }
 
-    public void setSeed(int seed) {
+    public void setSeed(long seed) {
         this.seed = seed;
     }
 
