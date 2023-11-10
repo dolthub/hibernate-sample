@@ -30,6 +30,7 @@
       <mapping class="com.dolthub.DaoSeed" />
       <mapping class="com.dolthub.Branch" />
       <mapping class="com.dolthub.CheckoutResult" />
+      <mapping class="com.dolthub.PetriDishCell" />
 
    </session-factory>
 </hibernate-configuration>

@@ -8,14 +8,13 @@ import java.util.Random;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.StatelessSession;
+import org.hibernate.annotations.Parameter;
 import org.hibernate.query.Query;
 
 public class App implements DatabaseInterface {
 
-    //StatelessSession session;
     private Session currentBranchSession;
     private final Map<String, Session> branchSessions = new HashMap<>();
-
     private final GuiMainWindow window;
 
     private App() {
@@ -26,7 +25,14 @@ public class App implements DatabaseInterface {
         window = new GuiMainWindow(fullDataReload(), this);
     }
 
+    public static void main( String[] args ) {
+        new App();
+    }
+
     private GameState fullDataReload() {
+        Query<PetriDishCell> q = currentBranchSession.createQuery("FROM PetriDishCell", PetriDishCell.class);
+        List<PetriDishCell> petridish = q.list();
+
         Query<Species> q1 = currentBranchSession.createQuery("FROM Species", Species.class);
         List<Species> speciesList = q1.list();
 
@@ -34,16 +40,11 @@ public class App implements DatabaseInterface {
         List<DaoSeed> seedList = q2.list();
         int seed = new Random().nextInt();
         if (seedList.size() != 1) {
-            // TODO handle this.
-            System.out.println("no seed in db, or more than 1");
+            System.out.println("no seed in db, or more than 1. Using a random number.");
         } else {
             seed = seedList.get(0).getSeed();
         }
-        return new GameState(seed, speciesList);
-    }
-
-    public static void main( String[] args ) {
-        App app = new App();
+        return new GameState(this, seed, petridish, speciesList);
     }
 
     @Override
@@ -57,12 +58,14 @@ public class App implements DatabaseInterface {
 
     @Override
     public void checkout(String branch) {
-        Session session = branchSessions.get(branch);
-        if (session == null) {
-            session = HibernateUtil.getSessionFactoryForBranch(branch);
-            branchSessions.put(branch, session);
+        if (branch != null) {
+            Session session = branchSessions.get(branch);
+            if (session == null) {
+                session = HibernateUtil.getSessionFactoryForBranch(branch);
+                branchSessions.put(branch, session);
+            }
+            currentBranchSession = session;
         }
-        currentBranchSession = session;
 
         GameState state = fullDataReload();
         window.newGameState(state);
@@ -85,6 +88,38 @@ public class App implements DatabaseInterface {
         // This query will always return one row as a result, true if dirty, false otherwise.
         Query<Boolean> q = currentBranchSession.createNativeQuery("select count(table_name) > 0 as dirty from  dolt_diff_stat(active_branch(),'WORKING')", Boolean.class);
         return q.getSingleResult();
+    }
+
+    @Override
+    public Map<PetriDishPrimaryKey, PetriDishCell> updateBoard(Map<PetriDishPrimaryKey, PetriDishCell> sessionStateObjects, Map<PetriDishPrimaryKey, PetriDishCell> detachedObjects) {
+        Map<PetriDishPrimaryKey, PetriDishCell> result = new HashMap<>();
+
+        currentBranchSession.beginTransaction();
+        // Any cells which are in the before, but not after are deletes.
+        for (PetriDishPrimaryKey key : sessionStateObjects.keySet()){
+            if (!detachedObjects.containsKey(key)){
+                currentBranchSession.remove(sessionStateObjects.get(key));
+            }
+        }
+
+        // For any cells which are in both, we copy values into the session objects and persist them
+        // For any new cell, we persist directly.
+        for (Map.Entry<PetriDishPrimaryKey, PetriDishCell> entry : detachedObjects.entrySet()) {
+            if(sessionStateObjects.containsKey(entry.getKey())){
+                PetriDishCell sessionObj = sessionStateObjects.get(entry.getKey());
+                sessionObj.setSpecies(entry.getValue().getSpecies());
+                sessionObj.setStrength(entry.getValue().getStrength());
+
+                currentBranchSession.persist(sessionObj);
+                result.put(entry.getKey(), sessionObj);
+            } else {
+                currentBranchSession.persist(entry.getValue());
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        currentBranchSession.getTransaction().commit();
+        return result;
     }
 
     @Override

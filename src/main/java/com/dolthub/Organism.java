@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class Organism {
 
     private final Species species;

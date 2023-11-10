@@ -1,6 +1,7 @@
 package com.dolthub;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DatabaseInterface {
 
@@ -15,5 +16,7 @@ public interface DatabaseInterface {
     abstract public String activeBranch();
 
     abstract public boolean dirtyWorkspace();
+
+    abstract public Map<PetriDishPrimaryKey, PetriDishCell> updateBoard(Map<PetriDishPrimaryKey, PetriDishCell> before, Map<PetriDishPrimaryKey, PetriDishCell> after);
 
 }

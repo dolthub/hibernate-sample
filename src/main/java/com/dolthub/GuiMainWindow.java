@@ -3,17 +3,20 @@ package com.dolthub;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class GuiMainWindow {
-
 
     private Timer timer;
 
     private JFrame mainFrame;
 
     private GuiPetriDish dish;
+
+    private GuiDoltAndScore frankenObj;
 
     private GameState gameState;
 
@@ -47,8 +50,10 @@ public class GuiMainWindow {
         ctl.setActionListener((ActionEvent ae) -> {
             if (ae.getActionCommand().equals("Tick")) {
                 this.renderTicks(1);
+                gameState.persist();
             } else if (ae.getActionCommand().equals("100 Ticks")) {
                 this.renderTicks(100);
+                gameState.persist();
             } else if (ae.getActionCommand().equals("Run")) {
                 ctl.setRunning(true);
                 timer.scheduleAtFixedRate(new InternalTimerTask(), 0, 20);
@@ -57,11 +62,14 @@ public class GuiMainWindow {
                 timer.cancel();
                 this.renderTicks(1);
                 timer = new Timer();
+                gameState.persist();
             }
         });
         mainFrame.add(ctl);
 
-        mainFrame.add(new GuiDoltOperations(db));
+        frankenObj = new GuiDoltAndScore(db);
+
+        mainFrame.add(frankenObj);
 
         mainFrame.setVisible(true);
         mainFrame.repaint();
@@ -74,6 +82,11 @@ public class GuiMainWindow {
         }
 
         dish.renderWith(gameState);
+        frankenObj.updateScore(gameState.getScore());
+
+        // Wrong place for this!!!!!! NM4
+ //       gameState.persist();
+
         mainFrame.getContentPane().repaint();
     }
 

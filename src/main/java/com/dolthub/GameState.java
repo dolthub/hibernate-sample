@@ -1,6 +1,5 @@
 package com.dolthub;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -20,17 +19,47 @@ public class GameState {
     public static final int WIDTH = 40;
     public static final int HEIGHT = 40;
 
-    private Map<Point, Organism> board;
+    // Hibernate session obejcts are stored here. When an update is required, we'll use them to persist. For performance
+    // reasons we don't used them as the live objects.
+    private Map<PetriDishPrimaryKey, PetriDishCell> sessionObjects;
 
-    private final List<Species> species;
+    private Map<PetriDishPrimaryKey, PetriDishCell> liveBoard;
 
-    public GameState(long seed, List<Species> species){
+    private long score = 0;
+
+//    private final Map<String, Species> idSpeciesMap;
+
+
+//    private final Map<String, Map<String, Double>> detachedSpeciesDamages = new HashMap<>();
+
+    private List<Species> species;
+
+    private final DatabaseInterface db;
+
+    public GameState(DatabaseInterface db, long seed, List<PetriDishCell> petridish, List<Species> species){
+        /*  NM4
+        idSpeciesMap = new LinkedHashMap<>();
+        for(Species s : species) {
+            idSpeciesMap.put(s.getId(), s);
+
+            Map<String,Double> damages = new HashMap<>();
+            for (Species victim : species) {
+                damages.put(victim.getId(), s.getDamage(victim));
+            }
+            detachedSpeciesDamages.put(s.getId(), damages);
+        }
+
+         */
+
+        this.db = db;
         this.species = species;
 
         Random rand = new Random(seed);
 
-        this.board = new HashMap<>();
+        this.liveBoard = new LinkedHashMap<>();
+        this.sessionObjects = new LinkedHashMap<>();
 
+        /*
         for (int x = 0; x < HEIGHT; x++) {
             for (int y = 0; y < WIDTH; y++) {
                 if (rand.nextBoolean()) {
@@ -40,33 +69,64 @@ public class GameState {
                 }
             }
         }
+         */
+
+        for (PetriDishCell p : petridish) {
+            liveBoard.put(p.getId(), new PetriDishCell(p));
+            sessionObjects.put(p.getId(), p);
+        }
     }
 
+    /* NM4
+    public class DetachedCellData {
+        String species;
+
+        double strength;
+
+        DetachedCellData(PetriDishCell cell) {
+            this.species = cell.getSpecies().getId();
+            this.strength = cell.getStrength();
+        }
+
+        DetachedCellData(String species, double strength) {
+            this.species = species;
+            this.strength = strength;
+        }
+
+        public void lowerStrength(double hits) {
+            this.strength -= Math.min(0.1, hits);
+        }
+    }
+     */
+
     public void tick() {
-        Map<Point, Organism> newBoard = new HashMap<Point, Organism>();
+        Set<String> bioDiversity = new HashSet<>();
+        Map<PetriDishPrimaryKey, PetriDishCell> newBoard = new HashMap<>();
         for(int x = 0; x < HEIGHT; x++) {
             for( int y = 0; y < WIDTH; y++) {
-                Point location = new Point(x,y);
-                Organism thisOrg = board.get(location);
-                Set<Organism> neighbors = getNeighbors(location);
+                PetriDishPrimaryKey location = new PetriDishPrimaryKey(x,y);
 
-                if (thisOrg != null) {
-                    Organism newOrg = thisOrg;
-                    for (Organism org : neighbors) {
-                        newOrg = newOrg.lowerStrength(org.getSpecies().getDamage(thisOrg.getSpecies()));
+                PetriDishCell cell = liveBoard.get(location);
+                Set<PetriDishCell> neighbors = getNeighbors(location);
+
+                if (cell != null) {
+                    for (PetriDishCell org : neighbors) {
+                        double damage = org.getSpecies().getDamage(cell.getSpecies());
+                        cell.lowerStrength(damage);
                     }
 
                     // Each cell ages by losing strength.
-                    newOrg = newOrg.lowerStrength(newOrg.getSpecies().getTickHealthImpact());
+                    cell.lowerStrength(cell.getSpecies().getTickHealthImpact());
 
-                    if (newOrg.getStrength() > 0.0) {
-                        newBoard.put(location, newOrg);
+                    if (cell.getStrength() > 0.0) {
+                        bioDiversity.add(cell.getSpecies().getId());
+                        newBoard.put(location, cell);
                     }
                 } else if (neighbors.size() >= 3 && neighbors.size() <= 5) {
-                    Map<Species, Integer> neighborCount = new HashMap<>();
-                    for (Organism org : neighbors) {
-                        int currentVal = neighborCount.getOrDefault(org.getSpecies(), 0);
-                        neighborCount.put(org.getSpecies(), currentVal + 1);
+                    Map<String, Integer> neighborCount = new HashMap<>();
+                    for (PetriDishCell cellAlt : neighbors) {
+                        int currentVal = neighborCount.getOrDefault(cellAlt.getSpecies(), 0);
+                        neighborCount.put(cellAlt.getSpecies().getId(), currentVal + 1);
                     }
 
                     // find the max count
@@ -76,9 +136,9 @@ public class GameState {
                     }
 
                     // Then ensure there is only one.
-                    Species match = null;
+                    String match = null;
                     Map.Entry<String, Integer> maxEntry = null;
-                    for (Map.Entry<Species, Integer> entry : neighborCount.entrySet()) {
+                    for (Map.Entry<String, Integer> entry : neighborCount.entrySet()) {
                         if (entry.getValue() == maxCount) {
                             if (match == null) {
                                 match = entry.getKey();
@@ -90,59 +150,94 @@ public class GameState {
                     }
 
                     if (match != null) {
-                        newBoard.put(location, new Organism(match));
+                        bioDiversity.add(match);
+
+                        Species found = null;
+                        // this is a little silly, but shortest path.
+                        for(Species s: species) {
+                            if (s.getId().equals(match)) {
+                                found = s;
+                                break;
+                            }
+                        }
+
+                        PetriDishCell newCell = new PetriDishCell(location, found, 1.0);
+                        newBoard.put(location, newCell);
                     }
                 }
             }
         }
 
-        this.board = newBoard;
+        this.score += tickPoints(bioDiversity.size());
+        this.liveBoard = newBoard;
     }
 
-    // Null returns if it is not living.
-    public Organism getCell(Point point) {
-        return board.get(point);
+    public void persist() {
+        sessionObjects = this.db.updateBoard(sessionObjects, liveBoard);
+
+        liveBoard.clear();
+        for(PetriDishPrimaryKey key : sessionObjects.keySet()) {
+            PetriDishCell sessObj = sessionObjects.get(key);
+            liveBoard.put(key, new PetriDishCell(key, sessObj.getSpecies(), sessObj.getStrength()));
+        }
+    }
+
+    private long tickPoints(int speciesCount) {
+           if (speciesCount <= 1) {
+               return 0;
+           }
+
+           speciesCount--;
+           return 1L << speciesCount;
+    }
+
+    // Null returned if it is not living.
+    public PetriDishCell getCell(PetriDishPrimaryKey key) {
+        return liveBoard.get(key);
+    }
+
+    public long getScore(){
+        return this.score;
     }
 
     public List<Species> getSpecies() {
         return species;
     }
 
-    private Set<Organism> getNeighbors(Point point) {
-        HashSet<Organism> answer = new HashSet<>();
-
+    private Set<PetriDishCell> getNeighbors(PetriDishPrimaryKey point) {
+        HashSet<PetriDishCell> answer = new HashSet<>();
         for (Direction dir : Direction.values()) {
-            Organism org = board.get(neighborPoint(point, dir));
-            if (org != null) {
-                answer.add(org);
+            PetriDishCell cell = liveBoard.get(neighborPoint(point, dir));
+            if (cell != null) {
+                answer.add(cell);
             }
         }
         return answer;
     }
 
-    public static Point neighborPoint(Point point, Direction direction) {
+    public static PetriDishPrimaryKey neighborPoint(PetriDishPrimaryKey cell, Direction direction) {
         int newVal;
         switch (direction) {
             case NORTH:
-                newVal = (point.x - 1) < 0 ? (GameState.HEIGHT - 1) : point.x - 1;
-                return new Point(newVal, point.y);
+                newVal = (cell.getX() - 1) < 0 ? (GameState.HEIGHT - 1) : cell.getX() - 1;
+                return new PetriDishPrimaryKey(newVal, cell.getY());
             case SOUTH:
-                newVal = (point.x + 1) == GameState.HEIGHT ? 0 : point.x + 1;
-                return new Point(newVal, point.y);
+                newVal = (cell.getX() + 1) == GameState.HEIGHT ? 0 : cell.getX() + 1;
+                return new PetriDishPrimaryKey(newVal, cell.getY());
             case WEST:
-                newVal = (point.y + 1) == GameState.WIDTH ? 0 : point.y + 1;
-                return new Point(point.x, newVal);
+                newVal = (cell.getY() + 1) == GameState.WIDTH ? 0 : cell.getY() + 1;
+                return new PetriDishPrimaryKey(cell.getX(), newVal);
             case EAST:
-                newVal = (point.y - 1) < 0 ? GameState.WIDTH : point.y - 1;
-                return new Point(point.x, newVal);
+                newVal = (cell.getY() - 1) < 0 ? GameState.WIDTH : cell.getY() - 1;
+                return new PetriDishPrimaryKey(cell.getX(), newVal);
             case NORTHWEST:
-                return neighborPoint(neighborPoint(point, Direction.NORTH), Direction.WEST);
+                return neighborPoint(neighborPoint(cell, Direction.NORTH), Direction.WEST);
             case NORTHEAST:
-                return neighborPoint(neighborPoint(point, Direction.NORTH), Direction.EAST);
+                return neighborPoint(neighborPoint(cell, Direction.NORTH), Direction.EAST);
             case SOUTHWEST:
-                return neighborPoint(neighborPoint(point, Direction.SOUTH), Direction.WEST);
+                return neighborPoint(neighborPoint(cell, Direction.SOUTH), Direction.WEST);
             case SOUTHEAST:
-                return neighborPoint(neighborPoint(point, Direction.SOUTH), Direction.EAST);
+                return neighborPoint(neighborPoint(cell, Direction.SOUTH), Direction.EAST);
             default:
         }
         return null;

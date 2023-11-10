@@ -33,6 +33,7 @@ public class HibernateUtil {
     }
 
     public static Session getSessionFactoryForBranch(String branch) {
+        // TODO - assert good input.
         return buildSessionFactory(branch).openSession();
     }
 
