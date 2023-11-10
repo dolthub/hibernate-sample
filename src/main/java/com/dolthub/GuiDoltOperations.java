@@ -9,12 +9,24 @@ public class GuiDoltOperations extends JPanel {
 
     private final DatabaseInterface db;
 
+    Commiter commiter;
+
     GuiDoltOperations(DatabaseInterface db) {
         this.db = db;
         this.setLayout(new GridLayout(2,1));
 
         this.add(new BranchChooser());
-        this.add(new Commiter());
+
+        commiter = new Commiter();
+        this.add(commiter);
+    }
+
+    public void refreshUncommitedMessage() {
+        this.remove(commiter);
+        this.commiter = new Commiter();
+        add(this.commiter);
+        repaint();
+        revalidate();
     }
 
     class BranchChooser extends JPanel {
@@ -58,17 +70,14 @@ public class GuiDoltOperations extends JPanel {
                 JButton commit = new JButton("Commit!");
 
                 commit.addActionListener(e -> {
-                    db.commit("asdfasdf");
+                    JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-                    removeAll();
-                    revalidate();
+                    GuiCommitDialog dialog = new GuiCommitDialog(parentFrame, db);
+                    dialog.setVisible(true);
                 });
 
                 add(commit);
 
-            } else {
-                JLabel msg = new JLabel(currentBranch + " has no uncommitted changes.");
-                add(msg);
             }
         }
     }

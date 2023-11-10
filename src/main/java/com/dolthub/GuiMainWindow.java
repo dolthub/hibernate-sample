@@ -14,7 +14,7 @@ public class GuiMainWindow {
 
     private GuiPetriDish dish;
 
-    private GuiDoltReseed frankenObj;  // NM4??
+    private GuiDoltAndReseedControls branchSelect;
 
     private GameState gameState;
 
@@ -34,24 +34,29 @@ public class GuiMainWindow {
     }
 
      public void newGameState(GameState state) {
-        if (this.dish != null) {
-            mainFrame.getContentPane().removeAll();
-        }
+         if (this.dish != null) {
+             mainFrame.getContentPane().removeAll();
+         }
 
-        this.gameState = state;
+         this.gameState = state;
 
-        this.dish = new GuiPetriDish();
-        this.dish.renderWith(gameState);
-        this.mainFrame.add(dish);
+         this.dish = new GuiPetriDish();
+         this.dish.renderWith(gameState);
+         this.mainFrame.add(dish);
 
-        GuiControlPanel ctl = new GuiControlPanel(gameState.getSpecies(), db);
-        ctl.setActionListener((ActionEvent ae) -> {
+         this.branchSelect = new GuiDoltAndReseedControls(gameState, db);
+
+         GuiControlPanel ctl = new GuiControlPanel(gameState.getSpecies(), db);
+
+         ctl.setActionListener((ActionEvent ae) -> {
             if (ae.getActionCommand().equals("Tick")) {
                 this.renderTicks(1);
                 gameState.persist();
+                branchSelect.refreshUncommitedMessage();
             } else if (ae.getActionCommand().equals("100 Ticks")) {
                 this.renderTicks(100);
                 gameState.persist();
+                branchSelect.refreshUncommitedMessage();
             } else if (ae.getActionCommand().equals("Run")) {
                 ctl.setRunning(true);
                 timer.scheduleAtFixedRate(new InternalTimerTask(), 0, 20);
@@ -61,13 +66,14 @@ public class GuiMainWindow {
                 this.renderTicks(1);
                 timer = new Timer();
                 gameState.persist();
+                branchSelect.refreshUncommitedMessage();
             }
+
         });
         mainFrame.add(ctl);
 
-        frankenObj = new GuiDoltReseed(gameState, db);
 
-        mainFrame.add(frankenObj);
+        mainFrame.add(branchSelect);
 
         mainFrame.setVisible(true);
         mainFrame.repaint();

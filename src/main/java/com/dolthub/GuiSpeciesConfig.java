@@ -2,6 +2,8 @@ package com.dolthub;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.List;
 
 public class GuiSpeciesConfig extends JPanel {
@@ -11,6 +13,8 @@ public class GuiSpeciesConfig extends JPanel {
     private Species selected;
 
     private DatabaseInterface persister;
+
+    private JTextField decayText;
 
     class LeftSelector extends JPanel {
         LeftSelector() {
@@ -35,25 +39,33 @@ public class GuiSpeciesConfig extends JPanel {
             add(Box.createHorizontalStrut(75));
 
             add(new JLabel("Aging Factor"));
-            JTextField decayText = new JTextField(4);
+            decayText = new JTextField(4);
             decayText.setText("" + selected.getTickHealthImpact());
             add(decayText);
 
-            decayText.addActionListener(e -> {
-                String newText = decayText.getText();
-                double newVal = safeDoubleParse(newText, selected.getTickHealthImpact());
-                if (newVal != selected.getTickHealthImpact()) {
-                    selected.setTickHealthImpact(newVal);
-                    persister.speciesUpdated(selected);
-
-                    System.out.println("UPDATE DIRTY BIT");
-                }
-            });
-
-//            decayText.addFocusListener();
-
-
+            decayText.addActionListener(e -> updateAging() );
+            decayText.addFocusListener(new DecayFocus());
         }
+
+        class DecayFocus implements FocusListener {
+            @Override
+            public void focusLost(FocusEvent e) {
+                updateAging();
+            }
+
+            @Override
+            public void focusGained(FocusEvent e) { }
+        }
+
+        private void updateAging() {
+            String newText = decayText.getText();
+            double newVal = safeDoubleParse(newText, selected.getTickHealthImpact());
+            if (newVal != selected.getTickHealthImpact()) {
+                selected.setTickHealthImpact(newVal);
+                persister.speciesUpdated(selected);
+            }
+        }
+
 
         class ColorCellRenderer extends JLabel implements ListCellRenderer<Species> {
             @Override
@@ -96,26 +108,43 @@ public class GuiSpeciesConfig extends JPanel {
     }
 
     class SingleDamage extends JPanel {
+        Species victim;
+
+        JTextField dmg;
+
         SingleDamage(Species victim) {
+            this.victim = victim;
             setLayout(new FlowLayout(FlowLayout.LEFT));
             GuiCell cell = new GuiCell();
             cell.setState(true, victim.getColor(), 1.0);
             add(cell);
-            JTextField dmg = new JTextField("" + selected.getDamage(victim));
+            dmg = new JTextField("" + selected.getDamage(victim));
             add(dmg);
             // add(Box.createHorizontalStrut(100));
 
-            dmg.addActionListener(e -> {
-                // TODO - handle bad input
-                double newDmg = safeDoubleParse(dmg.getText(), selected.getDamage(victim));
+            dmg.addActionListener(e -> updateDamage());
+            dmg.addFocusListener(new DamageFocus());
+        }
 
-                if (newDmg != selected.getDamage(victim)) {
-                    selected.setDamage(victim, newDmg);
-                    persister.speciesUpdated(selected);
+        class DamageFocus implements FocusListener {
+            @Override
+            public void focusLost(FocusEvent e) {
+                updateDamage();
+            }
 
-                    System.out.println("NEED TO UPDATE THE DIRTY BIT");
-                }
-            });
+            @Override
+            public void focusGained(FocusEvent e) { }
+        }
+
+        private void updateDamage() {
+            // TODO - handle bad input
+            double newDmg = safeDoubleParse(dmg.getText(), selected.getDamage(victim));
+            if (newDmg > 0.1 || newDmg < 0.0 ) {
+                System.err.println("Damage must be between 0.0 and 0.1 (inclusive)");
+            } else if (newDmg != selected.getDamage(victim)) {
+                selected.setDamage(victim, newDmg);
+                persister.speciesUpdated(selected);
+            }
         }
     }
 

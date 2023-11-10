@@ -47,25 +47,14 @@ public class App implements DatabaseInterface {
         return new GameState(this, seed, petridish, speciesList);
     }
 
-    private long lookupSeed() {
-        Query<DaoSeed> qry = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
-        List<DaoSeed> seedList = qry.list();
-        long seed = new Random().nextLong();
-        if (seedList.size() != 1) {
-            System.out.println("no seed in db, or more than 1. Using a random number.");
-        } else {
-            seed = seedList.get(0).getSeed();
-        }
-        return seed;
-    }
-
     @Override
     public void speciesUpdated(Species species) {
         currentBranchSession.beginTransaction();
         currentBranchSession.persist(species);
         currentBranchSession.getTransaction().commit();
 
-        System.out.println("We got a persister call: " + species);
+        GameState state = fullDataReload();
+        window.newGameState(state);
     }
 
     @Override
@@ -131,6 +120,7 @@ public class App implements DatabaseInterface {
         }
 
         currentBranchSession.getTransaction().commit();
+
         return result;
     }
 
@@ -155,14 +145,16 @@ public class App implements DatabaseInterface {
         }
         currentBranchSession.persist(new DaoSeed(newSeed));
         currentBranchSession.getTransaction().commit();
-
     }
 
     @Override
-    public void commit(String message) {
-        Query<String> q = currentBranchSession.createNativeQuery("call dolt_commit('-A','-m','test test test')", String.class);
+    public void commit(String author, String message) {
+        Query<String> q = currentBranchSession.createNativeQuery("call dolt_commit('-A','-m','"+ message +"','--author', '"+author+"')", String.class);
         String hash = q.getSingleResult();
 
         System.out.println(hash);
+
+        GameState state = fullDataReload();
+        window.newGameState(state);
     }
 }

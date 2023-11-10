@@ -13,15 +13,15 @@ public class GuiControlPanel extends JPanel {
 
     JButton runButton;
 
-    DatabaseInterface persister;
+    DatabaseInterface db;
 
-    public GuiControlPanel(List<Species> speciesList, DatabaseInterface persister){
-        this.persister = persister;
+    public GuiControlPanel(List<Species> speciesList, DatabaseInterface db){
+        this.db = db;
 
         this.setPreferredSize(new Dimension(500,100));
         this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        this.add(new GuiSpeciesConfig(speciesList, persister));
+        this.add(new GuiSpeciesConfig(speciesList, db));
 
         Insets insets = new Insets(1, 5, 1, 5);
         JPanel runButtons = new JPanel();
