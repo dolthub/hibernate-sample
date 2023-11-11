@@ -62,7 +62,7 @@ public class GuiSpeciesConfig extends JPanel {
             double newVal = safeDoubleParse(newText, selected.getTickHealthImpact());
             if (newVal != selected.getTickHealthImpact()) {
                 selected.setTickHealthImpact(newVal);
-                persister.speciesUpdated(selected);
+                persister.speciesUpdate(selected);
             }
         }
 
@@ -143,7 +143,7 @@ public class GuiSpeciesConfig extends JPanel {
                 System.err.println("Damage must be between 0.0 and 0.1 (inclusive)");
             } else if (newDmg != selected.getDamage(victim)) {
                 selected.setDamage(victim, newDmg);
-                persister.speciesUpdated(selected);
+                persister.speciesUpdate(selected);
             }
         }
     }

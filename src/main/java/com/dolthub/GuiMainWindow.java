@@ -96,4 +96,8 @@ public class GuiMainWindow {
             renderTicks(1);
         }
     }
+
+    public void refreshUncommitedMessage() {
+        branchSelect.refreshUncommitedMessage();
+    }
 }
