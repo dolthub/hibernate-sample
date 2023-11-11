@@ -59,7 +59,7 @@ public class PetriDishMain implements DatabaseInterface {
         if (branch != null) {
             Session session = branchSessions.get(branch);
             if (session == null) {
-                session = HibernateUtil.getSessionFactoryForBranch(branch);
+                session = HibernateUtil.getSessionForBranch(branch);
                 branchSessions.put(branch, session);
             }
             currentBranchSession = session;
