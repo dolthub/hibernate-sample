@@ -3,7 +3,11 @@ package com.dolthub;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
- 
+
+/**
+ * Utility to grab Hibernate sessions based on branch name. Each branch is similar to its own database,
+ * so we create a connection for each one. Caching of existing connections is handle in PetriDishMain.
+ */
 public class HibernateUtil {
     private static final String urlProp = "hibernate.connection.url";
 

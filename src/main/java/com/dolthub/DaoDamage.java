@@ -2,7 +2,8 @@ package com.dolthub;
 
 import jakarta.persistence.*;
 
-/* Data Access Object for the damage table. The Damage table is for tracking one number, which is how much
+/**
+ * Data Access Object for the damage table. The Damage table is for tracking one number, which is how much
  * damage is dealt from one species to another. Application doesn't use Damage class directly, as it's obtained
  * as a OneToMany lookup in the Species class.
  */

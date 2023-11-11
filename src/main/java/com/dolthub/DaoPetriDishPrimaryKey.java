@@ -11,6 +11,7 @@ public class DaoPetriDishPrimaryKey implements Serializable {
     private int y;
 
     public DaoPetriDishPrimaryKey() {
+        // Note these values are illegal in the DB. Hibernate will update them before writing.
         this.x = -1;
         this.y = -1;
     }
@@ -36,6 +37,11 @@ public class DaoPetriDishPrimaryKey implements Serializable {
         this.y = y;
     }
 
+    /**
+     * Due to this being an embedded id, we want to make sure that the equals method is right.
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

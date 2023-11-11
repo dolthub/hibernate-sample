@@ -6,6 +6,10 @@ import java.awt.event.ActionEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Primary GUI class which controls all user interactions with data. I do not know how to
+ * write UIs, so don't judge me. -- neil@dolthb.com
+ */
 public class GuiMainWindow {
 
     private Timer timer;
