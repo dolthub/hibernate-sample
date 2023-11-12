@@ -7,7 +7,7 @@ a locally running instance of a Dolt database. It's a variation on [Conways's Ga
 
 When setup and running, you'll have an application which looks like this:
 
-![](imgs/application.png)
+![](imgs/full_app_dolt.png)
 
 # Setup
 ## Getting the Database

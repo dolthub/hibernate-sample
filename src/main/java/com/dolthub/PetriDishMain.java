@@ -121,7 +121,7 @@ public class PetriDishMain implements DatabaseInterface {
         currentBranchSession.clear();
 
         Transaction trans = currentBranchSession.beginTransaction();
-        try
+        try {
             // Any cells which are in the before, but not after, are deletes.
             for (DaoPetriDishPrimaryKey key : sessionStateObjects.keySet()) {
                 if (!detachedObjects.containsKey(key) || !(detachedObjects.get(key).getStrength() > 0.0)) {
