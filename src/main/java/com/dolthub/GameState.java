@@ -19,8 +19,8 @@ public class GameState {
     public static final int WIDTH = 40;
     public static final int HEIGHT = 40;
 
-    // Hibernate session obejcts are stored here. When an update is required, we'll use them to persist. For performance
-    // reasons we don't used them as the live objects.
+    // Hibernate session objects are stored here. When an update is required, we'll use them to persist. For performance
+    // reasons we don't use them as the live objects.
     private Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> sessionObjects;
 
     private Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> liveBoard;
@@ -40,7 +40,6 @@ public class GameState {
 
         this.liveBoard = new LinkedHashMap<>();
         this.sessionObjects = new LinkedHashMap<>();
-
 
         for (DaoPetriDishCell p : petridish) {
             liveBoard.put(p.getId(), new DaoPetriDishCell(p));

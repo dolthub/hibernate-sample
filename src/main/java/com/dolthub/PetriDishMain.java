@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
+import jakarta.persistence.EntityExistsException;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 /**
@@ -48,6 +50,8 @@ public class PetriDishMain implements DatabaseInterface {
      * @return GameState
      */
     private GameState fullDataReload() {
+        currentBranchSession.clear();
+
         Query<DaoPetriDishCell> dishCells = currentBranchSession.createQuery("FROM DaoPetriDishCell", DaoPetriDishCell.class);
         List<DaoPetriDishCell> petridish = dishCells.list();
 
@@ -111,26 +115,46 @@ public class PetriDishMain implements DatabaseInterface {
     public Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> updateBoard(Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> sessionStateObjects, Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> detachedObjects) {
         Map<DaoPetriDishPrimaryKey, DaoPetriDishCell> result = new HashMap<>();
 
-        currentBranchSession.beginTransaction();
-        // Any cells which are in the before, but not after, are deletes.
-        for (DaoPetriDishPrimaryKey key : sessionStateObjects.keySet()){
-            if (!detachedObjects.containsKey(key)){
-                currentBranchSession.remove(sessionStateObjects.get(key));
+        // This is unfortunate. Honestly I was trying very hard to avoid this. Seems to impact performance significantly,
+        // but there was a persistent error I couldn't find the cause for stating that there were duplicate objects.
+        // This works, but is slow.
+        currentBranchSession.clear();
+
+        Transaction trans = currentBranchSession.beginTransaction();
+        try
+            // Any cells which are in the before, but not after, are deletes.
+            for (DaoPetriDishPrimaryKey key : sessionStateObjects.keySet()) {
+                if (!detachedObjects.containsKey(key) || !(detachedObjects.get(key).getStrength() > 0.0)) {
+                    try {
+
+                        currentBranchSession.remove(sessionStateObjects.get(key));
+
+                    } catch (EntityExistsException e) {
+                        System.out.println("Swallowing error possition: "+ key.getX() + "   " + key.getY());
+                    }
+
+                }
             }
-        }
 
-        // For any cells which are in both, we copy values into the session objects and persist them
-        // For any new cell, we persist directly.
-        for (Map.Entry<DaoPetriDishPrimaryKey, DaoPetriDishCell> entry : detachedObjects.entrySet()) {
-            DaoPetriDishCell cell = entry.getValue();
-            // User beware: Batch processing doesn't seem to work with merge due to a bunch up selects being
-            // required. This seems like a hibernate bug to me. While this works, it is slow when attempting to update
-            // 1K rows or more.
-            currentBranchSession.merge(cell);
-            result.put(entry.getKey(), cell);
-        }
+            // For any cells which are in both, we copy values into the session objects and persist them
+            // For any new cell, we persist directly.
+            for (Map.Entry<DaoPetriDishPrimaryKey, DaoPetriDishCell> entry : detachedObjects.entrySet()) {
+                DaoPetriDishCell cell = entry.getValue();
+                // Ensure we don't break out DB constraints.
+                if (cell.getStrength() > 0.0) {
+                    // User beware: Batch processing doesn't seem to work with merge due to a bunch up selects being
+                    // required. This seems like a hibernate bug to me. While this works, it is slow when attempting to update
+                    // 1K rows or more.
+                    currentBranchSession.merge(cell);
+                    result.put(cell.getId(), cell);
+                }
+            }
 
-        currentBranchSession.getTransaction().commit();
+            currentBranchSession.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            trans.rollback();
+        }
         return result;
     }
 
