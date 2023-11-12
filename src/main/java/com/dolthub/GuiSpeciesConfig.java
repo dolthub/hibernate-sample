@@ -118,12 +118,19 @@ public class GuiSpeciesConfig extends JPanel {
             GuiCell cell = new GuiCell();
             cell.setState(true, victim.getColor(), 1.0);
             add(cell);
-            dmg = new JTextField("" + selected.getDamage(victim));
+            this.dmg = new JTextField();
+            resetDamageTextField();
             add(dmg);
             // add(Box.createHorizontalStrut(100));
 
             dmg.addActionListener(e -> updateDamage());
             dmg.addFocusListener(new DamageFocus());
+        }
+
+        private void resetDamageTextField() {
+            String formattedValue = String.format(".%03d", (int)(selected.getDamage(victim) * 1000));
+            this.dmg.setText(formattedValue);
+            repaint();
         }
 
         class DamageFocus implements FocusListener {
@@ -145,6 +152,7 @@ public class GuiSpeciesConfig extends JPanel {
                 selected.setDamage(victim, newDmg);
                 persister.speciesUpdate(selected);
             }
+            resetDamageTextField();
         }
     }
 
