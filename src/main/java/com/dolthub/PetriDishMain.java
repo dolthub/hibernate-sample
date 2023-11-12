@@ -122,18 +122,12 @@ public class PetriDishMain implements DatabaseInterface {
         // For any cells which are in both, we copy values into the session objects and persist them
         // For any new cell, we persist directly.
         for (Map.Entry<DaoPetriDishPrimaryKey, DaoPetriDishCell> entry : detachedObjects.entrySet()) {
-            if(sessionStateObjects.containsKey(entry.getKey())){
-                // Copy state information from detached cells into hibernate managed objects.
-                DaoPetriDishCell sessionObj = sessionStateObjects.get(entry.getKey());
-                sessionObj.setSpecies(entry.getValue().getSpecies());
-                sessionObj.setStrength(entry.getValue().getStrength());
-
-                currentBranchSession.persist(sessionObj);
-                result.put(entry.getKey(), sessionObj);
-            } else {
-                currentBranchSession.persist(entry.getValue());
-                result.put(entry.getKey(), entry.getValue());
-            }
+            DaoPetriDishCell cell = entry.getValue();
+            // User beware: Batch processing doesn't seem to work with merge due to a bunch up selects being
+            // required. This seems like a hibernate bug to me. While this works, it is slow when attempting to update
+            // 1K rows or more.
+            currentBranchSession.merge(cell);
+            result.put(entry.getKey(), cell);
         }
 
         currentBranchSession.getTransaction().commit();
@@ -142,25 +136,34 @@ public class PetriDishMain implements DatabaseInterface {
 
     @Override
     public void persistSeed(long newSeed) {
-        Query<DaoSeed> qry = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
-        List<DaoSeed> seedList = qry.list();
+        try {
+            currentBranchSession.beginTransaction();
 
-        if (seedList.size() > 1) {
-            System.out.println("Too many entries in the seed table.");
-            return;
-        }
+            Query<DaoSeed> qry = currentBranchSession.createQuery("FROM DaoSeed", DaoSeed.class);
+            List<DaoSeed> seedList = qry.list();
 
-        // could be a no op.
-        if (seedList.size() == 1 && seedList.get(0).getSeed() == newSeed) {
-            return;
-        }
+            if (seedList.size() > 1) {
+                System.out.println("Too many entries in the seed table.");
+                return;
+            }
 
-        currentBranchSession.beginTransaction();
-        if (seedList.size() == 1) {
-            currentBranchSession.remove(seedList.get(0));
+            // could be a no op.
+            if (seedList.size() == 1 && seedList.get(0).getSeed() == newSeed) {
+                // Why can't cancel? NM4
+                currentBranchSession.getTransaction().rollback();
+                return;
+            }
+
+            if (seedList.size() == 1) {
+                currentBranchSession.remove(seedList.get(0));
+            }
+            currentBranchSession.persist(new DaoSeed(newSeed));
+            currentBranchSession.getTransaction().commit();
+        } catch (Exception e) {
+            System.out.println("Bad sitch: " + e);
+
+            currentBranchSession.getTransaction().rollback();
         }
-        currentBranchSession.persist(new DaoSeed(newSeed));
-        currentBranchSession.getTransaction().commit();
     }
 
     @Override

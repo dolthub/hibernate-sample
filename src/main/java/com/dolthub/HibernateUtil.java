@@ -16,6 +16,9 @@ public class HibernateUtil {
             // Create the SessionFactory from hibernate.cfg.xml
             Configuration cfg = new Configuration().configure();
 
+            // This is supposed to enable batch processing, but doesn't seem make a significant amount of difference.
+            cfg.setProperty("hibernate.jdbc.batch_size", "100");
+
             if (branch == null) {
                 return cfg.buildSessionFactory();
             }
