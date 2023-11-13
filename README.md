@@ -23,16 +23,15 @@ The application works with local branches currently, so you can create branches 
 `dolt branch -a`. Create branches as follows:
 
 ```sh
-$ dolt branch br1 origin/br1
-$ dolt branch squares origin/squares
+$ dolt branch clean_slate origin/clean_slate
+$ dolt branch red_background origin/red_background
 ```
 
 Start a dolt sql-server:
 ```sh
 $ dolt sql-server -u root -p r00tr00t --loglevel debug
 ```
-This will create a local server on port 3333. You can interact with the server using a MySQL client or by running `dolt sql` in the root directory. The password matters - it is coded into the [hibernate configuration](src/main/resources/hibernate.cfg.xml), and you
-are welcome to change it.
+This will create a local server on port 3333. You can interact with the server using a MySQL client or by running `dolt sql` in the root directory. The password matters - it is coded into the [hibernate configuration](https://github.com/dolthub/hibernate-sample/blob/main/src/main/resources/hibernate.cfg.xml), and you are welcome to change it.
 
 Once this server is running, leave the terminal open so you can see the logs. The `--loglevel` is specified so you can see all queries that are being performed by the application when it is running.
 
