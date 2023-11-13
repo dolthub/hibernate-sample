@@ -36,7 +36,7 @@ This will create a local server on port 3333. You can interact with the server u
 Once this server is running, leave the terminal open so you can see the logs. The `--loglevel` is specified so you can see all queries that are being performed by the application when it is running.
 
 ## Building and Running the PetriDish Application
-Prequisites are Java and Maven.
+Prerequisites are Java and Maven.
  * Install Java. I used [OpenJDK](https://openjdk.org/install/), but [Oracle's JVM](https://www.oracle.com/java/technologies/downloads/) will work as well.
  * [Install Maven](https://maven.apache.org/install.html)
 

@@ -4,11 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GuiCommitDialog  extends JDialog {
     private JTextField authorField;
-    private JTextField messageField;
+    private JTextArea messageArea;
 
     public GuiCommitDialog(JFrame parent, DatabaseInterface db) {
         super(parent, "Commit Changes", true);
@@ -16,13 +17,7 @@ public class GuiCommitDialog  extends JDialog {
 
         // Create components
         authorField = new JTextField();
-        authorField.setPreferredSize(new Dimension(200, 20));
-        messageField = new JTextField();
-        messageField.setPreferredSize(new Dimension(200, 60));
-
-        // Create labels
-        JLabel label1 = new JLabel("Author:");
-        JLabel label2 = new JLabel("Message:");
+        messageArea = new JTextArea();
 
         // Create OK and Cancel buttons
         JButton okButton = new JButton("Commit!");
@@ -33,29 +28,33 @@ public class GuiCommitDialog  extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Handle OK button click
-                String input1 = authorField.getText();
-                String input2 = messageField.getText();
+                String author = authorField.getText();
+                String message = messageArea.getText();
 
-                db.commit(input1, input2);
+                author = author.trim();
+                String mungedAuthor = mungeAuthor(author);
+                if (mungedAuthor.equals(author)) {
+                    // Should work
+                    db.commit(author, message);
 
-                dispose(); // Close the dialog
+                    dispose(); // Close the dialog
+                } else {
+                    authorField.setText(mungedAuthor);
+                }
             }
         });
 
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Handle Cancel button click
-                dispose(); // Close the dialog
+                dispose();
             }
         });
 
         // Create panels to organize components
-        JPanel inputPanel = new JPanel(new GridLayout(2, 2));
-        inputPanel.add(label1);
-        inputPanel.add(authorField);
-        inputPanel.add(label2);
-        inputPanel.add(messageField);
+        JPanel inputPanel = new JPanel(new GridLayout(2,1));
+        inputPanel.add(new Author());
+        inputPanel.add(new Message());
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(okButton);
@@ -66,9 +65,54 @@ public class GuiCommitDialog  extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Set dialog properties
-        setSize(300, 150);
+        setSize(400, 250);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
     }
+
+    class Author extends JPanel {
+        Author() {
+            // setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            setLayout(new FlowLayout());
+
+            add(new JLabel("Author:"));
+
+            authorField.setPreferredSize(new Dimension(200, 20));
+
+            add(authorField);
+        }
+    }
+
+    class Message extends JPanel {
+        Message() {
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
+            add(new JLabel(("Message:")));
+
+            authorField.setPreferredSize(new Dimension(200, 60));
+
+            add(messageArea);
+        }
+    }
+
+    private String mungeAuthor(String providedText) {
+
+        String pattern = "^[^<]+ <[^>]+@[^>]+>$";
+
+        // Create a Pattern object
+        Pattern regex = Pattern.compile(pattern);
+
+        // Create a Matcher object
+        Matcher matcher = regex.matcher(providedText);
+
+        // Check if the input string matches the pattern
+        if (matcher.matches()) {
+            return providedText;
+        }
+
+        System.out.println("Munging your input. Dolt requires an author which looks like 'Name <foo@bar.com>'");
+        return providedText + " <name@email.com>";
+    }
+
 }
